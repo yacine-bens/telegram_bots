@@ -33,17 +33,17 @@ async function setWebhooks() {
     let res = await axios.get(`https://${VERCEL_URL}/forhire/setWebhook`);
     let data = res.data;
     console.log(data);
-    response.forhire = data;
+    response['forhire'] = data;
     
     res = await axios.get(`https://${VERCEL_URL}/phones/setWebhook`);
     data = res.data;
     console.log(data);
-    response.phones = data;
+    response['phones'] = data;
     
     res = await axios.get(`https://${VERCEL_URL}/words/setWebhook`);
     data = res.data;
     console.log(data);
-    response.words = data
+    response['words'] = data
 
     return response;
 }

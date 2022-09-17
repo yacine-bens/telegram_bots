@@ -16,8 +16,8 @@ app.use('/words', route_words);
 const { VERCEL_URL } = process.env;
 
 
-app.get('/setWebhooks', (req, res) => {
-    let response = setWebhooks();
+app.get('/setWebhooks', async (req, res) => {
+    let response = await setWebhooks();
     return res.send(response.data);
 })
 

@@ -18,7 +18,7 @@ const { VERCEL_URL } = process.env;
 
 app.get('/setWebhooks', async (req, res) => {
     let response = await setWebhooks();
-    return res.send(response.data);
+    return res.send(response);
 })
 
 app.listen(process.env.PORT || 5000, async () => {

@@ -79,6 +79,12 @@ router.post(URI, async (req, res) => {
                 // Reset lasts_posts array
                 dataObject[chatId]['last_posts'] = [];
 
+                // Send "Please wait..." message
+                await axios.post(`${TELEGRAM_API}/sendMessage`, {
+                    chat_id: chatId,
+                    text: "Please wait..."
+                });
+                
                 let posts = await getPosts();
 
                 // Format posts list

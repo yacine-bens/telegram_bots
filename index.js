@@ -5,7 +5,6 @@ const axios = require('axios');
 const route_forhire = require('./routes/reddit_forhire');
 const route_phones = require('./routes/phone_price');
 const route_words = require('./routes/words_count');
-const { send } = require('process');
 
 const app = express();
 
@@ -31,19 +30,13 @@ async function setWebhooks() {
     let response = {};
 
     let res = await axios.get(`https://${VERCEL_URL}/forhire/setWebhook`);
-    let data = res.data;
-    console.log(data);
-    response['forhire'] = data;
+    response['forhire'] = res.data;
     
     res = await axios.get(`https://${VERCEL_URL}/phones/setWebhook`);
-    data = res.data;
-    console.log(data);
-    response['phones'] = data;
+    response['phones'] = res.data;
     
     res = await axios.get(`https://${VERCEL_URL}/words/setWebhook`);
-    data = res.data;
-    console.log(data);
-    response['words'] = data
+    response['words'] = res.data;
 
     return response;
 }

@@ -1,24 +1,26 @@
+// Main modules
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const axios = require('axios');
+// Additional modules
 const url = require('url');
 const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
 
 router.use(bodyParser.json());
 
-// Telegram bot
-const { TOKEN_PHONES, VERCEL_URL } = process.env;
-const SERVER_URL = `https://${VERCEL_URL}/phones`;
-const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN_PHONES}`;
-const URI = `/webhook/${TOKEN_PHONES}`;
-const WEBHOOK_URL = SERVER_URL + URI;
-
+// Telegram Bot (Set appropriate Token)
+const TOKEN = process.env.TOKEN_PHONES;
+const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
+const URI = `/webhook/${TOKEN}`;
 
 // Set webhook
 router.get(`/setWebhook`, async (req, res) => {
+    // req.baseUrl : endpoint
+    const SERVER_URL = req.protocol + '://' + req.get('host') + req.baseUrl;
+    const WEBHOOK_URL = SERVER_URL + URI;
     const response = await axios.get(`${TELEGRAM_API}/setWebhook?url=${WEBHOOK_URL}`);
     return res.send(response.data);
 })
@@ -138,11 +140,11 @@ async function getPhones(search) {
             let price = phone.querySelector('ul li.produit_valeur h4.prix').textContent.replace('Prix', '').trim();
             let detailsElement = phone.querySelectorAll('ul li.produit_valeur h4.libelle-properties');
             let details = '';
-            if(detailsElement[0] && detailsElement[1]){
+            if (detailsElement[0] && detailsElement[1]) {
                 details = detailsElement[0].textContent.trim() + '\n- ' + detailsElement[1].textContent.trim();
                 // remove extra whitespaces
                 details = details.replaceAll(/[^\S\r\n]+/g, ' ').trim();
-    
+
                 details = '- ' + details.replace('Pouces ', 'Pouces\n- ').replace('Go ', 'Go\n- ');
             }
 
@@ -158,6 +160,5 @@ async function getPhones(search) {
 
     return phones;
 }
-
 
 module.exports = router;

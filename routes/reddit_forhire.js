@@ -1,19 +1,19 @@
+// Main modules
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const axios = require('axios');
+// Additional modules
 const url = require('url');
 const snoowrap = require('snoowrap');
 
 router.use(bodyParser.json());
 
-// Telegram Bot stuff
-const { TOKEN_FORHIRE, VERCEL_URL } = process.env;
-const SERVER_URL = `https://${VERCEL_URL}/forhire`;
-const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN_FORHIRE}`;
-const URI = `/webhook/${TOKEN_FORHIRE}`;
-const WEBHOOK_URL = SERVER_URL + URI;
+// Telegram Bot (Set appropriate Token)
+const TOKEN = process.env.TOKEN_FORHIRE;
+const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
+const URI = `/webhook/${TOKEN}`;
 
 // Reddit API stuff
 const { USER_AGENT, CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN, USER_ID } = process.env;
@@ -21,12 +21,14 @@ let ACCESS_TOKEN = null;
 // Reddit snoowrap object
 let r = null;
 
-
 // Database alternative
 let dataObject = {};
 
 // Set Webhook
 router.get('/setWebhook', async (req, res) => {
+    // req.baseUrl : route endpoint
+    const SERVER_URL = req.protocol + '://' + req.get('host') + req.baseUrl;
+    const WEBHOOK_URL = SERVER_URL + URI;
     const response = await axios.get(`${TELEGRAM_API}/setWebhook?url=${WEBHOOK_URL}`);
     return res.send(response.data);
 })

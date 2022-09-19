@@ -1,18 +1,18 @@
+// Main modules
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const axios = require('axios');
+// Additional modules
 const { MongoClient, ServerApiVersion } = require('mongodb');
-
 
 router.use(bodyParser.json());
 
-const { TOKEN_WORDS, VERCEL_URL } = process.env;
-const SERVER_URL = `https://${VERCEL_URL}/words`;
-const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN_WORDS}`;
-const URI = `/webhook/${TOKEN_WORDS}`;
-const WEBHOOK_URL = SERVER_URL + URI;
+// Telegram Bot (Set appropriate Token)
+const TOKEN = process.env.TOKEN_WORDS;
+const TELEGRAM_API = `https://api.telegram.org/bot${TOKEN}`;
+const URI = `/webhook/${TOKEN}`;
 
 // MongoDB
 const DB_URI = "mongodb+srv://vercel-admin-user:dKkJWnHudcEg8Q5c@cluster0.teexhmd.mongodb.net/test";
@@ -20,6 +20,9 @@ const client = new MongoClient(DB_URI, { useNewUrlParser: true, useUnifiedTopolo
 
 // Set Webhook
 router.get('/setWebhook', async (req, res) => {
+    // req.baseUrl : route endpoint
+    const SERVER_URL = req.protocol + '://' + req.get('host') + req.baseUrl;
+    const WEBHOOK_URL = SERVER_URL + URI;
     const response = await axios.get(`${TELEGRAM_API}/setWebhook?url=${WEBHOOK_URL}`);
     return res.send(response.data);
 })
@@ -98,6 +101,5 @@ function isBotCommand(msg) {
         }
     }
 }
-
 
 module.exports = router;

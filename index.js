@@ -2,41 +2,60 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 
+// Define route for each Bot
 const route_forhire = require('./routes/reddit_forhire');
-const route_phones = require('./routes/phone_price');
+const route_phones = require('./routes/phones_price');
 const route_words = require('./routes/words_count');
+
+const routes = {
+    '/forhire': route_forhire,
+    '/phones': route_phones,
+    '/words': route_words
+}
 
 const app = express();
 
-app.use('/forhire', route_forhire);
-app.use('/phones', route_phones);
-app.use('/words', route_words);
+// app.use('/endpoint', route)
+for (let route of Object.keys(routes)) {
+    app.use(route, routes[route]);
+}
 
-const { VERCEL_URL } = process.env;
+// Deploy on Vercel : use Vercel provided URL
+const SERVER_URL = validateURL(process.env.VERCEL_URL || process.env.SERVER_URL);
 
-
+// Set webhooks manually (case of serverless functions, ex: Vercel)
 app.get('/setWebhooks', async (req, res) => {
-    let response = await setWebhooks();
+    let response = await setWebhooks(routes);
     return res.send(response);
 })
 
 app.listen(process.env.PORT || 5000, async () => {
     console.log('App in running on port:', process.env.PORT || 5000);
-    setWebhooks();
+    setWebhooks(routes);
 });
 
 
-async function setWebhooks() {
+async function setWebhooks(routes) {
     let response = {};
-
-    let res = await axios.get(`https://${VERCEL_URL}/forhire/setWebhook`);
-    response['forhire'] = res.data;
-    
-    res = await axios.get(`https://${VERCEL_URL}/phones/setWebhook`);
-    response['phones'] = res.data;
-    
-    res = await axios.get(`https://${VERCEL_URL}/words/setWebhook`);
-    response['words'] = res.data;
-
+    // Set webhook url for each bot
+    for(let route of Object.keys(routes)){
+        let res = await axios.get(SERVER_URL + route + '/setWebhook');
+        response[route] = res.data;
+        console.log(res.data);
+    }
     return response;
+}
+
+
+function validateURL(url) {
+    let result = '';
+    if (!url.startsWith('http')) {
+        result = `https://${url}`;
+    }
+    // Remove additional slashes
+    result = result.replace(/([^:]\/)\/+/g, "$1");
+    // Remove trailing slash
+    if (result.endsWith('/')) result = result.slice(0, result.length - 1);
+
+    return result;
 }

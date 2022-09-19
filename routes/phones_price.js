@@ -19,7 +19,7 @@ const URI = `/webhook/${TOKEN}`;
 // Set webhook
 router.get(`/setWebhook`, async (req, res) => {
     // req.baseUrl : endpoint
-    const SERVER_URL = req.protocol + '://' + req.get('host') + req.baseUrl;
+    const SERVER_URL = 'https://' + req.get('host') + req.baseUrl;
     const WEBHOOK_URL = SERVER_URL + URI;
     const response = await axios.get(`${TELEGRAM_API}/setWebhook?url=${WEBHOOK_URL}`);
     return res.send(response.data);

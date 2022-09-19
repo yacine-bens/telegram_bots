@@ -49,9 +49,11 @@ async function setWebhooks(routes) {
 
 function validateURL(url) {
     let result = '';
-    if (!url.startsWith('http')) {
-        result = `https://${url}`;
+    if(!url.startsWith('https')){
+        if(url.startsWith('http')) result = url.replace('http', 'https')
+        else result = `https://${url}`;
     }
+    else result = url;
     // Remove additional slashes
     result = result.replace(/([^:]\/)\/+/g, "$1");
     // Remove trailing slash

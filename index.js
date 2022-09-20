@@ -6,11 +6,13 @@ const axios = require('axios');
 const route_forhire = require('./routes/reddit_forhire');
 const route_phones = require('./routes/phones_price');
 const route_words = require('./routes/words_count');
+const route_gamepass = require('./routes/game_pass');
 
 const routes = {
     '/forhire': route_forhire,
     '/phones': route_phones,
-    '/words': route_words
+    '/words': route_words,
+    '/gamepass': route_gamepass
 }
 
 const app = express();
@@ -48,12 +50,11 @@ async function setWebhooks(routes) {
 
 
 function validateURL(url) {
-    let result = '';
+    let result = url;
     if(!url.startsWith('https')){
         if(url.startsWith('http')) result = url.replace('http', 'https')
         else result = `https://${url}`;
     }
-    else result = url;
     // Remove additional slashes
     result = result.replace(/([^:]\/)\/+/g, "$1");
     // Remove trailing slash

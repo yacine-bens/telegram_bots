@@ -7,12 +7,14 @@ const route_forhire = require('./routes/reddit_forhire');
 const route_phones = require('./routes/phones_price');
 const route_words = require('./routes/words_count');
 const route_gamepass = require('./routes/game_pass');
+const route_currency = require('./routes/currency_converter');
 
 const routes = {
     '/forhire': route_forhire,
     '/phones': route_phones,
     '/words': route_words,
-    '/gamepass': route_gamepass
+    '/gamepass': route_gamepass,
+    '/currency': route_currency
 }
 
 const app = express();

@@ -37,7 +37,7 @@ router.post(URI, async (req, res) => {
     const messageText = req.body.message.text;
 
     let response_message = '';
-    const usage_message = 'Usage: \n- Signle : 100 USD = EUR\n- Multiple : 50 EUR = DZD, USD, EUR';
+    const usage_message = 'Usage: \n- Single : 100 USD = EUR\n- Multiple : 50 EUR = DZD, USD, EUR';
     const error_message = 'Please try again.\n\n' + usage_message;
 
     if (isBotCommand(req.body.message)) {

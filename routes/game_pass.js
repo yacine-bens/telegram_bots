@@ -49,8 +49,8 @@ router.post(URI, async (req, res) => {
         })
 
         let gamesList = await getGames();
-        if(Object.keys(gamesList).length){
-            let result = searchGame(messageText, gamesList);
+        let result = searchGame(messageText, gamesList);
+        if(Object.keys(result).length){
             response_message = formatMessage(result);
             if(response_message.length > 8000) response_message = 'Found too many games, please be more specific!';
         }

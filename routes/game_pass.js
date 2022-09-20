@@ -108,13 +108,13 @@ function searchGame(gameToBeFound, gamesList) {
     var results = {};
     Object.keys(gamesList).forEach(category => {
         gamesList[category].forEach(game => {
-            let gameTitle = game.title.trim().toUpperCase().replace(' ', ' ');
+            let gameTitle = game['title'].trim().toUpperCase().replace(' ', ' ');
             if (gameTitle.indexOf(gameToBeFound.toUpperCase()) != -1) {
                 if (!results[gameTitle]) results[gameTitle] = {};
                 if (!results[gameTitle]['categories']) results[gameTitle]['categories'] = [];
                 results[gameTitle]['categories'] = [...results[gameTitle]['categories'], category];
-                results[gameTitle]['url'] = game.url;
-                if(game.date) results[gameTitle]['date'] = game.date.replace(/([^\s\w])/g, '');
+                results[gameTitle]['url'] = game['url'];
+                if(game['date']) results[gameTitle]['date'] = game['date'].replace(/([^\s\w])/g, '');
             }
         })
     })

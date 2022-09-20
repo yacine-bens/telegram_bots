@@ -42,6 +42,12 @@ router.post(URI, async (req, res) => {
         else response_message = 'Please enter a valid bot command!';
     }
     else{
+        // Send please wait message
+        await axios.post(`${TELEGRAM_API}/sendMessage`, {
+            chat_id: chatId,
+            text: 'Please wait...',
+        })
+
         let gamesList = await getGames();
         if(Object.keys(gamesList).length){
             let result = searchGame(messageText, gamesList);
@@ -90,12 +96,12 @@ async function getGames(){
     
     let games = [...cards].reduce((acc, cur) => {
         // Category Title
-        var categoryTitle = cur.querySelectorAll('.et_pb_text_inner')[1].textContent;
-        if (categories.includes(categoryTitle.toUpperCase())) {
+        var categoryTitle = cur.querySelectorAll('.et_pb_text_inner')[1].textContent.toUpperCase();
+        if (categories.includes(categoryTitle)) {
             var gamesList = [];
             cur.querySelectorAll('.et_pb_toggle_content li a').forEach(link => {
                 let date = link.parentElement.querySelector('b');
-                gamesList.push({ title: link.innerText, url: link.href, date: date ? date.innerText : null })
+                gamesList.push({ title: link.textContent, url: link.href, date: date ? date.textContent : null })
             });
             return { ...acc, [categoryTitle]: gamesList };
         }
@@ -131,7 +137,7 @@ function formatMessage(games){
         });
         result += '\n';
     }
-    result += `Found ${Object.keys(games).length} games.`
+    result += `\nFound ${Object.keys(games).length} games.`
     return result;
 }
 

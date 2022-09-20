@@ -98,7 +98,8 @@ function isBotCommand(msg) {
 
 async function convertCurrency(from, to, amount){
     try{
-        let res = await axios.get(`https://xecdapi.xe.com/v1/convert_from.json/?from=${from}&to=${to}&amount=${amount}`, {
+        // Allowed crypto: ADA, BCH, DOGE, DOT, ETH, LINK, LTC, LUNA, UNI, XLM and XRP
+        let res = await axios.get(`https://xecdapi.xe.com/v1/convert_from.json/?from=${from}&to=${to}&amount=${amount}&crypto=true`, {
             auth: {
                 username: XE_ID,
                 password: XE_KEY

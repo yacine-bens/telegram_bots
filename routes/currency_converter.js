@@ -37,7 +37,7 @@ router.post(URI, async (req, res) => {
     const messageText = req.body.message.text;
 
     let response_message = '';
-    const usage_message = 'Usage: \n- Single : 100 USD = EUR\n- Multiple : 50 EUR = DZD, USD, EUR';
+    const usage_message = 'Usage: \n- Single : 100 USD = EUR\n- Multiple : 50 EUR = DZD, USD, GBP';
     const error_message = 'Please try again.\n\n' + usage_message;
 
     if (isBotCommand(req.body.message)) {
@@ -97,14 +97,19 @@ function isBotCommand(msg) {
 }
 
 async function convertCurrency(from, to, amount){
-    let res = await axios.get(`https://xecdapi.xe.com/v1/convert_from.json/?from=${from}&to=${to}&amount=${amount}`, {
-        auth: {
-            username: XE_ID,
-            password: XE_KEY
-        }
-    });
-
-    if(res.data.to) return res.data.to;
+    try{
+        let res = await axios.get(`https://xecdapi.xe.com/v1/convert_from.json/?from=${from}&to=${to}&amount=${amount}`, {
+            auth: {
+                username: XE_ID,
+                password: XE_KEY
+            }
+        });
+    
+        if(res.data.to) return res.data.to;
+    }
+    catch(e){
+        console.log(e);
+    }
     return [];
 }
 

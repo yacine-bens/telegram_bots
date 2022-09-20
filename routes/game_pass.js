@@ -47,7 +47,7 @@ router.post(URI, async (req, res) => {
 
             let gamesList = await getGames('coming');
             gamesList = gamesList['COMING SOON'];
-            if(!gamesList.length) response_message = 'No coming soon games!';
+            if (!gamesList.length) response_message = 'No coming soon games!';
             else response_message = formatMessage(gamesList, 'coming', 10);
         }
         else if (messageText === '/leaving') {
@@ -59,7 +59,7 @@ router.post(URI, async (req, res) => {
 
             let gamesList = await getGames('leaving');
             gamesList = gamesList['LEAVING SOON'];
-            if(!gamesList.length) response_message = 'No leaving soon games!';
+            if (!gamesList.length) response_message = 'No leaving soon games!';
             else response_message = formatMessage(gamesList, 'leaving');
         }
         else response_message = 'Please enter a valid bot command!';
@@ -97,7 +97,7 @@ router.post(URI, async (req, res) => {
 function isBotCommand(msg) {
     if (msg.text.startsWith('/') && msg.entities) {
         for (let entity of msg.entities) {
-            return entity.type === "bot_command";
+            if (entity.type === "bot_command") return true;
         }
     }
     return false;

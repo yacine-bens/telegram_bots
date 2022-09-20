@@ -44,7 +44,7 @@ router.post(URI, async (req, res) => {
         if (messageText === '/start') response_message = usage_message;
     }
     else {
-        if(!messageText.includes('=')) response_message = error_message;
+        if (!messageText.includes('=')) response_message = error_message;
         else {
             // Extract details
             let amount = messageText.split('=')[0].match(/\w+/g)[0];
@@ -54,7 +54,7 @@ router.post(URI, async (req, res) => {
             let to = messageText.split('=')[1].match(/\w+/g);
             to = to.join(',');
 
-            if(!from.length || isNaN(amount) || !to.length) response_message = error_message;
+            if (!from.length || isNaN(amount) || !to.length) response_message = error_message;
             else {
                 // Send please wait message
                 await axios.post(`${TELEGRAM_API}/sendMessage`, {
@@ -63,7 +63,7 @@ router.post(URI, async (req, res) => {
                 })
 
                 let results = await convertCurrency(from, to, amount);
-                if(!results.length) response_message = error_message;
+                if (!results.length) response_message = error_message;
                 else {
                     response_message = `${amount} ${from.toUpperCase()} :`;
                     results.forEach(currency => {
@@ -90,14 +90,14 @@ router.post(URI, async (req, res) => {
 function isBotCommand(msg) {
     if (msg.text.startsWith('/') && msg.entities) {
         for (let entity of msg.entities) {
-            return entity.type === "bot_command";
+            if (entity.type === "bot_command") return true;
         }
     }
     return false;
 }
 
-async function convertCurrency(from, to, amount){
-    try{
+async function convertCurrency(from, to, amount) {
+    try {
         // Allowed crypto: ADA, BCH, DOGE, DOT, ETH, LINK, LTC, LUNA, UNI, XLM and XRP
         let res = await axios.get(`https://xecdapi.xe.com/v1/convert_from.json/?from=${from}&to=${to}&amount=${amount}&crypto=true`, {
             auth: {
@@ -105,10 +105,10 @@ async function convertCurrency(from, to, amount){
                 password: XE_KEY
             }
         });
-    
-        if(res.data.to) return res.data.to;
+
+        if (res.data.to) return res.data.to;
     }
-    catch(e){
+    catch (e) {
         console.log(e);
     }
     return [];

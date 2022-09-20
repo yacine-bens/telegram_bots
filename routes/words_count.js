@@ -97,7 +97,7 @@ function charCount(str) {
 function isBotCommand(msg) {
     if (msg.text.startsWith('/') && msg.entities) {
         for (let entity of msg.entities) {
-            return entity.type === "bot_command";
+            if (entity.type === "bot_command") return true;
         }
     }
 }

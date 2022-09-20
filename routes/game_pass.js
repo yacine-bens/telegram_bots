@@ -38,15 +38,29 @@ router.post(URI, async (req, res) => {
 
     if (isBotCommand(req.body.message)) {
         if (messageText === '/start') response_message = 'Please enter a game name.';
-        else if(messageText === '/coming') {
+        else if (messageText === '/coming') {
+            // Send please wait message
+            await axios.post(`${TELEGRAM_API}/sendMessage`, {
+                chat_id: chatId,
+                text: 'Please wait...',
+            })
+
             let gamesList = await getGames('coming');
-            gamesList = gamesList['COMING SOON']
-            response_message = formatMessage(gamesList, 'coming', 10);
+            gamesList = gamesList['COMING SOON'];
+            if(!gamesList.length) response_message = 'No coming soon games!';
+            else response_message = formatMessage(gamesList, 'coming', 10);
         }
-        else if(messageText === '/leaving') {
+        else if (messageText === '/leaving') {
+            // Send please wait message
+            await axios.post(`${TELEGRAM_API}/sendMessage`, {
+                chat_id: chatId,
+                text: 'Please wait...',
+            })
+
             let gamesList = await getGames('leaving');
             gamesList = gamesList['LEAVING SOON'];
-            response_message = formatMessage(gamesList, 'leaving');
+            if(!gamesList.length) response_message = 'No leaving soon games!';
+            else response_message = formatMessage(gamesList, 'leaving');
         }
         else response_message = 'Please enter a valid bot command!';
     }
@@ -136,13 +150,13 @@ function searchGame(gameToBeFound, gamesList) {
 function formatMessage(games, category, count = 100) {
     let result = '';
 
-    if(category === 'coming' || category === 'leaving'){
-        for(let i = 0; i < count; i++){
-            if(!games[i]) break;
+    if (category === 'coming' || category === 'leaving') {
+        for (let i = 0; i < count; i++) {
+            if (!games[i]) break;
             result += `<a href="${games[i]['url']}">${games[i]['title']}</a>\n${games[i]['date']}\n\n`;
         }
     }
-    else{
+    else {
         for (let game of Object.keys(games)) {
             result += `<a href="${games[game].url}">${game}</a>\n`;
             games[game].categories.forEach(cat => {

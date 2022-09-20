@@ -90,7 +90,7 @@ async function getGames(){
     
     let games = [...cards].reduce((acc, cur) => {
         // Category Title
-        var categoryTitle = cur.querySelectorAll('.et_pb_text_inner')[1].innerText;
+        var categoryTitle = cur.querySelectorAll('.et_pb_text_inner')[1].textContent;
         if (categories.includes(categoryTitle.toUpperCase())) {
             var gamesList = [];
             cur.querySelectorAll('.et_pb_toggle_content li a').forEach(link => {

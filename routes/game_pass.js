@@ -54,7 +54,7 @@ router.post(URI, async (req, res) => {
             response_message = formatMessage(result);
             if(response_message.length > 8000) response_message = 'Found too many games, please be more specific!';
         }
-        else response_message = `No games found for:\n${messageText}`;
+        else response_message = `No games found for :\n"${messageText}"`;
     }
     
     //Respond to user

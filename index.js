@@ -8,13 +8,15 @@ const route_phones = require('./routes/phones_price');
 const route_words = require('./routes/words_count');
 const route_gamepass = require('./routes/game_pass');
 const route_currency = require('./routes/currency_converter');
+const route_weather = require('./routes/weather');
 
 const routes = {
     '/forhire': route_forhire,
     '/phones': route_phones,
     '/words': route_words,
     '/gamepass': route_gamepass,
-    '/currency': route_currency
+    '/currency': route_currency,
+    '/weather': route_weather
 }
 
 const app = express();

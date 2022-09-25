@@ -9,6 +9,7 @@ const route_words = require('./routes/words_count');
 const route_gamepass = require('./routes/game_pass');
 const route_currency = require('./routes/currency_converter');
 const route_weather = require('./routes/weather');
+const route_spoiler = require('./routes/spoiler_message');
 
 const routes = {
     '/forhire': route_forhire,
@@ -16,7 +17,8 @@ const routes = {
     '/words': route_words,
     '/gamepass': route_gamepass,
     '/currency': route_currency,
-    '/weather': route_weather
+    '/weather': route_weather,
+    '/spoiler': route_spoiler
 }
 
 const app = express();

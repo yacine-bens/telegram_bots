@@ -4,8 +4,6 @@ const express = require('express');
 const router = express.Router();
 const bodyParser = require('body-parser');
 const axios = require('axios');
-// Additional modules
-// ...
 
 router.use(bodyParser.json());
 

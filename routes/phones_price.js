@@ -8,6 +8,7 @@ const axios = require('axios');
 const url = require('url');
 const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
 router.use(bodyParser.json());
 
@@ -25,29 +26,199 @@ router.get(`/setWebhook`, async (req, res) => {
     return res.send(response.data);
 })
 
+// MongoDB
+const { DB_URI } = process.env;
+const client = new MongoClient(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+
+const settings = {
+    menu: {
+        values: {},
+        keyboard: {
+            text: 'Settings',
+            inlineKeyboard: [
+                [{ text: 'Change Vendor', callback_data: 'vendor' }],
+                [{ text: 'Exit', callback_data: 'exit' }]
+            ]
+        }
+    },
+    vendor: {
+        values: {
+            'ace': {
+                name: 'ACE',
+                code: '56305',
+            },
+            'apple': {
+                name: 'Apple',
+                code: '5741',
+            },
+            'condor': {
+                name: 'Condor',
+                code: '12540',
+            },
+            'google': {
+                name: 'Google',
+                code: '37065',
+            },
+            'huawei': {
+                name: 'Huawei',
+                code: '11712',
+            },
+            'iku': {
+                name: 'iKU',
+                code: '9829005',
+            },
+            'infinix': {
+                name: 'INFINIX',
+                code: '66537',
+            },
+            'iris': {
+                name: 'IRIS',
+                code: '14770',
+            },
+            'nokia': {
+                name: 'Nokia',
+                code: '5918',
+            },
+            'nubia': {
+                name: 'Nubia Red Magic',
+                code: '5430356',
+            },
+            'oneplus': {
+                name: 'OnePlus',
+                code: '43420',
+            },
+            'oppo': {
+                name: 'Oppo',
+                code: '14281',
+            },
+            'realme': {
+                name: 'Realme',
+                code: '109180',
+            },
+            'samsung': {
+                name: 'Samsung',
+                code: '3674',
+            },
+            'starlight': {
+                name: 'Starlight',
+                code: '3838',
+            },
+            'wiko': {
+                name: 'Wiko',
+                code: '13197',
+            },
+            'xiaomi': {
+                name: 'Xiaomi',
+                code: '41820',
+            },
+            'all': {
+                name: 'All',
+                code: '-1',
+            }
+        },
+        keyboard: {
+            text: 'Select Vendor',
+            inlineKeyboard: [
+                [{ text: 'ACE', callback_data: 'vendor_ace' }, { text: 'Apple', callback_data: 'vendor_apple' }],
+                [{ text: 'Condor', callback_data: 'vendor_condor' }, { text: 'Google', callback_data: 'vendor_google' }],
+                [{ text: 'Huawei', callback_data: 'vendor_huawei' }, { text: 'iKU', callback_data: 'vendor_iku' }],
+                [{ text: 'INFINIX', callback_data: 'vendor_infinix' }, { text: 'IRIS', callback_data: 'vendor_iris' }],
+                [{ text: 'Nokia', callback_data: 'vendor_nokia' }, { text: 'Nubia', callback_data: 'vendor_nubia' }],
+                [{ text: 'OnePlus', callback_data: 'vendor_oneplus' }, { text: 'Oppo', callback_data: 'vendor_oppo' }],
+                [{ text: 'Realme', callback_data: 'vendor_realme' }, { text: 'Samsung', callback_data: 'vendor_samsung' }],
+                [{ text: 'Starlight', callback_data: 'vendor_starlight' }, { text: 'Wiko', callback_data: 'vendor_wiko' }],
+                [{ text: 'Xiaomi', callback_data: 'vendor_xiaomi' }, { text: 'ZTE', callback_data: 'vendor_zte' }],
+                [{ text: 'All', callback_data: 'vendor_all' }],
+                [{ text: 'Back to menu', callback_data: 'menu' }]
+            ]
+        }
+    }
+}
+
+const defaultSettings = {
+    vendor: settings.vendor.values['all']
+}
+
 // Receive messages
 router.post(URI, async (req, res) => {
     console.log(req.body);
 
-    // Check if update is a message
-    if (!req.body.message || !req.body.message.text) return res.send();
+    // Get bot name from endpoint
+    const botName = req.baseUrl.replace('/', '');
 
+    const database = await client.connect();
+    const db = database.db(botName);
+
+    // Update is a callback query
+    if (req.body.callback_query) {
+        const cbQueryId = req.body.callback_query.id;
+        const cbQueryData = req.body.callback_query.data;
+        const msgId = req.body.callback_query.message.message_id;
+        const chatId = req.body.callback_query.message.chat.id;
+
+        // Menu queries
+        if (!cbQueryData.includes('_')) {
+            if (cbQueryData === 'exit') {
+                await deleteMessage(chatId, msgId);
+            }
+            else {
+                const keyboard = inlineKeyboard(cbQueryData);
+                await sendInlineKeyboard(chatId, msgId, cbQueryId, keyboard);
+            }
+        }
+        // Value queries
+        else {
+            // Set settings
+            const settingsName = cbQueryData.split('_')[0];
+            const settingsKey = cbQueryData.split('_')[1];
+            const settingsValue = settings[settingsName]['values'][settingsKey];
+
+            const newSettings = {
+                name: settingsName,
+                value: settingsValue
+            }
+
+            await setUserSettings(chatId, newSettings, db);
+
+            await answerCallback(cbQueryId, 'Settings successfully changed.', true);
+
+            // Go back to main menu
+            const keyboard = inlineKeyboard('menu');
+            await sendInlineKeyboard(chatId, msgId, cbQueryId, keyboard);
+        }
+        return res.send();
+    }
+    // Update is not a message
+    else if (!req.body.message || !req.body.message.text) return res.send();
+
+    const updateId = req.body.update_id;
     const chatId = req.body.message.chat.id;
     const messageText = req.body.message.text;
+    const msgId = req.body.message.message_id;
 
+    // Check if update is repeated
+    const repeatedUpdate = await isRepeatedUpdate(chatId, updateId, db);
+    if(repeatedUpdate) return res.send();
+
+    // To be sent to the user
     let response_message = '';
+
+    // User settings
+    const userSettings = await getUserSettings(chatId, db, defaultSettings);
 
     if (isBotCommand(req.body.message)) {
         if (messageText === '/start') response_message = 'Please enter phone model.'
+        else if(messageText === '/settings'){
+            await deleteMessage(chatId, msgId);
+            await sendSettingsMenu(chatId);
+            return res.send();
+        }
     }
     else {
         // Send please wait message
-        await axios.post(`${TELEGRAM_API}/sendMessage`, {
-            chat_id: chatId,
-            text: 'Please wait...'
-        })
+        await pleaseWait(TELEGRAM_API, chatId);
 
-        let phones = await getPhones(messageText);
+        let phones = await getPhones(messageText, userSettings.vendor['code']);
         // Found results
         if (phones.length) {
             for (let i = 0; i < phones.length; i++) {
@@ -63,11 +234,13 @@ router.post(URI, async (req, res) => {
                     // Clear message
                     response_message = '';
                 }
-            }
-            response_message += `\nResults found : ${phones.length}`;
+            };
+            response_message += `\nVendor : ${userSettings.vendor['name']}`;
+            response_message += `\n\nResults found : ${phones.length}`;
         }
         else {
             response_message = `No results found for :\n"${messageText}"`;
+            response_message += `\n\nVendor : ${userSettings.vendor['name']}`;
         }
     }
 
@@ -87,6 +260,12 @@ router.post(URI, async (req, res) => {
     return res.send();
 })
 
+async function pleaseWait(api, chat_id) {
+    axios.post(`${api}/sendMessage`, {
+        chat_id: chat_id,
+        text: 'Please wait...'
+    })
+}
 
 function isBotCommand(msg) {
     if (msg.text.startsWith('/') && msg.entities) {
@@ -97,10 +276,9 @@ function isBotCommand(msg) {
     return false;
 }
 
-
-async function getPhones(search) {
+async function getPhones(search, vendor) {
     const data = {
-        "filtre_value_dep_441": "-1",
+        "filtre_value_dep_441": vendor,
         "filtre_value_schema_630": search,
         "Envoyer": "Go",
         "filtre_value_schema_633": "-1",
@@ -159,6 +337,94 @@ async function getPhones(search) {
     }
 
     return phones;
+}
+
+async function isRepeatedUpdate(chat_id, update_id, db) {
+    const updatesCollection = db.collection('updates');
+    const result = await updatesCollection.findOne({ chat_id: chat_id }, { projection: { _id: 0 } });
+
+    // First time
+    if (!result) {
+        await updatesCollection.insertOne({ chat_id: chat_id, last_update: update_id });
+    }
+    else {
+        if (parseInt(update_id) <= parseInt(result.last_update)) return true;
+        await updatesCollection.updateOne({ chat_id: chat_id }, { $set: { last_update: update_id } });
+        return false;
+    }
+}
+
+async function getUserSettings(chat_id, db, default_settings) {
+    let userSettings = default_settings;
+
+    const userSettingsCollection = db.collection('user_settings');
+    const result = await userSettingsCollection.findOne({ chat_id: chat_id }, { projection: { _id: 0, chat_id: 0 } });
+
+    // First time
+    if (result) {
+        userSettings = result;
+    }
+    else {
+        await userSettingsCollection.insertOne({ chat_id: chat_id, ...userSettings });
+    }
+
+    return userSettings;
+}
+
+async function setUserSettings(chat_id, settings, db) {
+    const userSettingsCollection = db.collection('user_settings');
+    await userSettingsCollection.updateOne({ chat_id: chat_id }, { $set: { [settings.name]: settings.value } });
+}
+
+function inlineKeyboard(cb_query_data) {
+    let keyboard = {
+        text: '',
+        inlineKeyboard: []
+    }
+    keyboard.text = settings[cb_query_data]['keyboard']['text'];
+    keyboard.inlineKeyboard = settings[cb_query_data]['keyboard']['inlineKeyboard'];
+
+    return keyboard;
+}
+
+async function sendInlineKeyboard(chat_id, msg_id, cb_query_id, keyboard) {
+    await axios.post(`${TELEGRAM_API}/editMessageText`, {
+        chat_id: chat_id,
+        message_id: msg_id,
+        text: keyboard.text,
+        reply_markup: {
+            inline_keyboard: keyboard.inlineKeyboard
+        }
+    })
+
+    await axios.post(`${TELEGRAM_API}/answerCallbackQuery`, {
+        callback_query_id: cb_query_id
+    })
+}
+
+async function deleteMessage(chat_id, msg_id) {
+    await axios.post(`${TELEGRAM_API}/deleteMessage`, {
+        chat_id: chat_id,
+        message_id: msg_id
+    })
+}
+
+async function sendSettingsMenu(chat_id) {
+    await axios.post(`${TELEGRAM_API}/sendMessage`, {
+        chat_id: chat_id,
+        text: settings['menu']['keyboard']['text'],
+        reply_markup: {
+            inline_keyboard: settings['menu']['keyboard']['inlineKeyboard']
+        }
+    })
+}
+
+async function answerCallback(cb_query_id, msg, show_alert) {
+    await axios.post(`${TELEGRAM_API}/answerCallbackQuery`, {
+        callback_query_id: cb_query_id,
+        text: msg,
+        show_alert: show_alert
+    });
 }
 
 module.exports = router;
